@@ -20,7 +20,8 @@ client = genai.Client(api_key=settings.gemini_api_key)
 def construire_prompt(garments, port):
     lignes = [
         "Image 1 - PERSONNE : preserve exactement le visage, la morphologie, "
-        "la pose et le fond. Ne modifie rien de cette personne."
+        "la pose et le fond. Retire TOUS les vetements visibles sur cette personne "
+        "avant d'habiller avec les pieces listees ci-dessous."
     ]
     for i, (_, slot) in enumerate(garments, start=2):
         lignes.append(

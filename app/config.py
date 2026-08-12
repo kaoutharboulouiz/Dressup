@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     gemini_api_key: str
 
     model_vision: str = "gemini-2.0-flash"
-    model_image: str = "gemini-2.0-flash-preview-image-generation"
-    model_image_draft: str = "gemini-2.0-flash-preview-image-generation"
+    model_image: str = "gemini-3-pro-image"
+    model_image_draft: str = "gemini-3-pro-image"
     model_embed: str = "text-embedding-004"
     embed_dim: int = 768
 
