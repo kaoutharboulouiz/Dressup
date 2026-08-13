@@ -37,3 +37,17 @@ class Garment(Base):
     render_quality: Mapped[str | None] = mapped_column(String(10))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     user: Mapped[User] = relationship(back_populates="garments")
+
+class Recipe(Base):
+    __tablename__ = "recipes"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    source: Mapped[str] = mapped_column(String(20))
+    source_ref: Mapped[str | None] = mapped_column(String(200))
+    pieces: Mapped[list] = mapped_column(JSONB)
+    registre: Mapped[str | None] = mapped_column(String(60))
+    silhouette: Mapped[str | None] = mapped_column(Text)
+    regle_cle: Mapped[str | None] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text)
+    embedding: Mapped[list[float]] = mapped_column(Vector(settings.embed_dim))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
