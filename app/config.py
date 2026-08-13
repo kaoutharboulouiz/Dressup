@@ -10,11 +10,11 @@ class Settings(BaseSettings):
 
     gemini_api_key: str
 
-    model_vision: str = "gemini-2.0-flash"
+    model_vision: str = "gemini-3.5-flash"
     model_image: str = "gemini-3-pro-image"
     model_image_draft: str = "gemini-3-pro-image"
-    model_embed: str = "text-embedding-004"
-    embed_dim: int = 768
+    model_embed: str = "models/gemini-embedding-001"
+    embed_dim: int = 3072
 
     database_url: str = "postgresql+psycopg://dressing:dressing@localhost:5433/dressing"
     max_renders_par_jour: int = 40
