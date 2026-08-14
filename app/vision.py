@@ -49,12 +49,20 @@ def extraire_garment(path: Path, tentatives: int = 3) -> dict:
             resp = client.models.generate_content(
                 model=settings.model_vision,
                 contents=[_image_part(path), PROMPT_GARMENT],
-                config={"response_mime_type": "application/json"},
+                config={
+                    "response_mime_type": "application/json",
+                    "max_output_tokens": 2048,
+                },
             )
             return _parse(resp.text)
+        except json.JSONDecodeError:
+            if i < tentatives - 1:
+                print("   JSON invalide - nouvelle tentative...")
+                continue
+            raise
         except Exception as e:
             if "503" in str(e) and i < tentatives - 1:
-                print(f"   503 - attente {15 * (i+1)}s avant retry...")
+                print(f"   503 - attente {15 * (i+1)}s...")
                 time.sleep(15 * (i + 1))
             else:
                 raise
