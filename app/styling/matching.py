@@ -116,7 +116,10 @@ def proposer_tenues(
 ) -> list[dict]:
     """Applique l'affectation a chaque recette candidate, trie par score."""
     garde_robe = s.scalars(
-        select(Garment).where(Garment.user_id == user_id)
+        select(Garment).where(
+            Garment.user_id == user_id,
+            (Garment.render_quality.is_(None)) | (Garment.render_quality != "mauvais"),
+        )
     ).all()
 
     tenues = []

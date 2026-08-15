@@ -2,7 +2,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from app.config import settings
@@ -50,4 +50,56 @@ class Recipe(Base):
     regle_cle: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str] = mapped_column(Text)
     embedding: Mapped[list[float]] = mapped_column(Vector(settings.embed_dim))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class Outfit(Base):
+    __tablename__ = "outfits"
+    __table_args__ = (UniqueConstraint("outfit_key", name="uq_outfit_key"),)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    recipe_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("recipes.id"))
+    score: Mapped[float] = mapped_column(Float)
+    couverture: Mapped[float] = mapped_column(Float)
+    harmonie: Mapped[float] = mapped_column(Float)
+    justification: Mapped[str | None] = mapped_column(Text)
+    occasion: Mapped[str | None] = mapped_column(String(80))
+    styling_spec: Mapped[dict] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    items: Mapped[list["OutfitItem"]] = relationship(back_populates="outfit")
+    outfit_key: Mapped[str] = mapped_column(String(64), index=True)
+
+
+class OutfitItem(Base):
+    __tablename__ = "outfit_items"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    outfit_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("outfits.id"))
+    garment_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("garments.id"))
+    slot: Mapped[str] = mapped_column(String(16))
+    port: Mapped[str | None] = mapped_column(Text)
+    is_anchor: Mapped[bool] = mapped_column(default=False)
+    ordre: Mapped[int] = mapped_column(Integer)
+    outfit: Mapped[Outfit] = relationship(back_populates="items")
+    garment: Mapped[Garment] = relationship()
+
+
+class Render(Base):
+    __tablename__ = "renders"
+    __table_args__ = (UniqueConstraint("render_key", name="uq_render_key"),)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    outfit_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("outfits.id"))
+    avatar_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("avatars.id"))
+    render_key: Mapped[str] = mapped_column(String(64), index=True)
+    status: Mapped[str] = mapped_column(String(12), default="pending")
+    provider: Mapped[str] = mapped_column(String(60))
+    image_path: Mapped[str | None] = mapped_column(Text)
+    erreur: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Avatar(Base):
+    __tablename__ = "avatars"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    image_path: Mapped[str] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

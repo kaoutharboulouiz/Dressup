@@ -121,3 +121,29 @@ def styliser_lot(tenues: list[dict], n: int = 5) -> list[dict]:
             print(f"  styliser echoue : {str(e)[:80]}")
             t["styling_spec"] = None
     return tenues
+def styliser_lot_intelligent(s, user_id, tenues: list[dict], n: int = 5) -> list[dict]:
+    """Ne stylise que les tenues absentes de la base. Recupere le spec des autres."""
+    from app.models import Outfit
+    from app.rendering.service import outfit_key
+    from sqlalchemy import select
+
+    for t in tenues[:n]:
+        ids = [i["garment"].id for i in t["items"]]
+        cle = outfit_key(user_id, ids)
+        connu = s.scalar(select(Outfit).where(Outfit.outfit_key == cle))
+
+        if connu is not None and connu.styling_spec:
+            t["styling_spec"] = connu.styling_spec
+            ports = {p["slot"]: p.get("port")
+                     for p in connu.styling_spec.get("pieces", [])}
+            for item in t["items"]:
+                item["port_transpose"] = ports.get(item["slot"])
+            print("  (styling en cache)")
+            continue
+
+        try:
+            styliser(t)
+        except Exception as e:
+            print(f"  styliser echoue : {str(e)[:80]}")
+            t["styling_spec"] = None
+    return tenues
