@@ -26,11 +26,10 @@ Reponds uniquement par un objet JSON :
 {
   "pieces": [
     {
-      "slot": "...",
+      "index": le meme index que dans tenue_reelle,
       "port": "comment porter CE vetement, formule pour cette tenue precise.
                Si aucune indication utile, mets null.",
-      "transpose": true si tu as adapte depuis la reference, false si tu l'as
-                   repris tel quel ou invente
+      "transpose": true si tu as adapte depuis la reference, false sinon
     }
   ],
   "silhouette": "une phrase sur les volumes et proportions de CETTE tenue",
@@ -43,7 +42,9 @@ Reponds uniquement par un objet JSON :
 REGLES :
 - Ne mentionne JAMAIS un vetement absent de la tenue reelle.
 - Si le port de reference ne se transpose pas, mets null plutot qu'inventer.
-- La justification doit etre specifique a ces vetements, pas generique."""
+- La justification doit etre specifique a ces vetements, pas generique.
+- Si deux vetements partagent le meme slot (ex: deux hauts superposes), donne-leur
+  des instructions DIFFERENTES et coherentes entre elles."""
 
 
 def _payload(tenue: dict) -> str:
@@ -54,17 +55,18 @@ def _payload(tenue: dict) -> str:
             "silhouette": tenue["recette"].silhouette,
         },
         "tenue_reelle": [
-            {
-                "slot": i["slot"],
-                "vetement": i["garment"].categorie,
-                "couleur": i["garment"].attributs.get("couleur_nom", ""),
-                "matiere": i["garment"].attributs.get("matiere", ""),
-                "coupe": i["garment"].attributs.get("coupe", ""),
-                "port_reference": i.get("port"),
-                "impose": i["is_anchor"],
-            }
-            for i in tenue["items"]
-        ],
+                    {
+                        "index": n,
+                        "slot": i["slot"],
+                        "vetement": i["garment"].categorie,
+                        "couleur": i["garment"].attributs.get("couleur_nom", ""),
+                        "matiere": i["garment"].attributs.get("matiere", ""),
+                        "coupe": i["garment"].attributs.get("coupe", ""),
+                        "port_reference": i.get("port"),
+                        "impose": i["is_anchor"],
+                    }
+                    for n, i in enumerate(tenue["items"])
+                ],
     }, ensure_ascii=False, indent=2)
 
 
@@ -95,9 +97,9 @@ def styliser(tenue: dict, tentatives: int = 3) -> dict:
         raise RuntimeError("styliser : echec apres retries")
 
     # Reinjecte le port transpose dans les items, par slot
-    ports = {p["slot"]: p.get("port") for p in spec.get("pieces", [])}
-    for item in tenue["items"]:
-        item["port_transpose"] = ports.get(item["slot"])
+    ports = {p.get("index"): p.get("port") for p in spec.get("pieces", [])}
+    for n, item in enumerate(tenue["items"]):
+            item["port_transpose"] = ports.get(n)
 
     tenue["styling_spec"] = {
         "silhouette": spec.get("silhouette"),

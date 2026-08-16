@@ -29,9 +29,14 @@ def affecter(
     Retourne None si la tenue obtenue n'est pas viable.
     """
     utilises = {a.id for a in ancres}
-    plan: list[tuple[Garment, dict, bool]] = [
-        (a, {}, True) for a in ancres
-    ]
+    plan: list[tuple[Garment, dict, bool]] = []
+    for a in ancres:
+            piece_ref = max(
+                (p for p in recette.pieces if p.get("slot") == a.slot),
+                key=lambda p: _piece_compatible(p, a),
+                default={},
+            )
+            plan.append((a, piece_ref, True))
     slots_ancres = {a.slot for a in ancres}
     manquants: list[str] = []
 
