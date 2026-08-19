@@ -108,3 +108,30 @@ h3 {
 .carte button:disabled { opacity: 0.5; cursor: default; }
 
 .erreur { color: #a4443a; font-size: 13px; }
+.declinaisons {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--trait);
+}
+.declinaisons h4 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--doux); margin: 0 0 10px; font-weight: 500;
+}
+.onglets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.onglet {
+  padding: 6px 11px; font-size: 12px; background: none;
+  border: 1px solid var(--trait); border-radius: 20px;
+  cursor: pointer; color: var(--doux); width: auto;
+}
+.onglet.actif {
+  border-color: var(--accent); color: var(--texte); background: var(--fond);
+}
+
+.port {
+  font-size: 13px; line-height: 1.55; color: var(--doux); margin: 0 0 10px;
+}
+.meta { margin-bottom: 10px; }
+.badge {
+  font-size: 11px; padding: 3px 8px; border-radius: 20px;
+  background: var(--fond); color: var(--doux);
+}

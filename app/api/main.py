@@ -13,11 +13,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
-from app.rendering.service import quota_restant, rendre, sauver_tenue
 from app.styling.retrieval import recettes_pour_ancres
 from app.models import Avatar, Garment, Outfit, Render, User, Variant
 from app.styling.matching import grouper_par_outfit, proposer_tenues
 from app.styling.stylist import styliser
+from app.rendering.service import outfit_key, quota_restant, rendre, sauver_tenue
 
 app = FastAPI(title="Dressup")
 
@@ -165,7 +165,13 @@ def proposer(body: ProposeIn, s: Session = Depends(get_db)):
 
     sortie = []
     for t in tenues:
-        styliser(t, t.get("recettes"))
+        ids = [i["garment"].id for i in t["items"]]
+        cle = outfit_key(user.id, ids)
+        connu = s.scalar(select(Outfit).where(Outfit.outfit_key == cle))
+
+        if connu is None or not connu.variants:
+            styliser(t, t.get("recettes"))
+
         outfit, _ = sauver_tenue(s, user.id, t)
         s.commit()
         s.refresh(outfit)

@@ -52,12 +52,30 @@ Reponds uniquement par un objet JSON :
   ]
 }
 
+
 REGLES :
 - Les cles de "ports" sont les index (en chaine) de la tenue reelle.
 - Ne mentionne JAMAIS un vetement absent de la tenue reelle.
 - Deux variantes doivent differer VISIBLEMENT, pas par une nuance de formulation.
+- Chaque variante doit changer un AXE DIFFERENT : le rentre/sorti, l'ouverture
+  d'une piece, la position de taille, le retroussement des manches, la
+  superposition. Deux variantes qui jouent sur le meme axe sont un doublon,
+  meme si les mots different.
 - Si deux vetements partagent le meme slot (superposition), donne-leur des
-  instructions differentes et coherentes entre elles."""
+  instructions differentes et coherentes entre elles.
+- Le champ "port" sera lu par un generateur d'images. Decris donc ce qu'on VOIT,
+  jamais le geste : quelle partie du vetement est visible, ou passe sa ligne,
+  ce qui apparait dessous, ou s'arrete l'ourlet.
+    MAUVAIS : "mi-rentre"
+    BON     : "l'avant disparait sous la ceinture, l'arriere retombe sur les
+               hanches"
+    MAUVAIS : "veste boutonnee en bas"
+    BON     : "seuls les deux boutons du bas sont fermes, les pans du haut
+               s'ecartent et laissent voir le top en dessous"
+  Le champ "titre", lui, reste court et lisible pour un humain.
+  - Mets "port": null quand il n'y a rien de visuellement notable a dire sur une
+  piece. Une paire de chaussures se porte aux pieds : ce n'est pas une
+  instruction. N'ecris un port que s'il change ce qu'on voit."""
 
 
 def _payload(tenue: dict, recettes: list) -> str:

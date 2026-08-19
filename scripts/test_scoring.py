@@ -4,6 +4,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.styling.scoring import hex_to_hsl, est_neutre, score_couleur, score_tenue
+from app.styling.scoring import malus_focal, malus_superposition
+
 
 CAS = [
     ("#000000", "#FFFFFF", "noir + blanc"),
@@ -46,3 +48,33 @@ tenues = {
 for nom, pieces in tenues.items():
     r = score_tenue(pieces)
     print(f"{nom:24} {r}")
+
+
+print("\n=== Malus focal ===")
+cas_focal = {
+    "un seul statement": [{"poids_visuel": 5}, {"poids_visuel": 2}, {"poids_visuel": 2}],
+    "deux statements": [{"poids_visuel": 5}, {"poids_visuel": 4}, {"poids_visuel": 2}],
+    "trois statements": [{"poids_visuel": 4}, {"poids_visuel": 4}, {"poids_visuel": 5}],
+    "tout neutre": [{"poids_visuel": 2}, {"poids_visuel": 1}, {"poids_visuel": 3}],
+    "valeurs en chaine": [{"poids_visuel": "5"}, {"poids_visuel": "4"}],
+}
+for nom, p in cas_focal.items():
+    print(f"{nom:22} {malus_focal(p):.2f}")
+
+print("\n=== Malus superposition ===")
+cas_sup = {
+    "hierarchie correcte": [
+        {"slot": "haut", "motif": "uni", "longueur": "courte", "texture": "lisse"},
+        {"slot": "haut", "motif": "imprime", "longueur": "longue", "texture": "fluide"},
+    ],
+    "deux motifs, meme longueur": [
+        {"slot": "haut", "motif": "fleuri", "longueur": "standard", "texture": "fluide"},
+        {"slot": "haut", "motif": "raye", "longueur": "standard", "texture": "fluide"},
+    ],
+    "pas de superposition": [
+        {"slot": "haut", "motif": "fleuri", "longueur": "courte", "texture": "fluide"},
+        {"slot": "bas", "motif": "raye", "longueur": "longue", "texture": "structuree"},
+    ],
+}
+for nom, p in cas_sup.items():
+    print(f"{nom:28} {malus_superposition(p):.2f}")

@@ -1,7 +1,7 @@
 """Persistance des tenues et generation des rendus, avec cache et quota."""
 
 from __future__ import annotations
-
+import time
 import hashlib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -66,11 +66,15 @@ def sauver_tenue(s: Session, user_id, tenue: dict) -> tuple[Outfit, bool]:
                 ordre=item["ordre"],
             ))
 
-    recettes = tenue.get("recettes") or [tenue["recette"]]
+        recettes = tenue.get("recettes") or [tenue["recette"]]
     recipe_id = recettes[0].id if recettes else None
     existantes = {v.variant_key for v in outfit.variants}
 
+    MAX_VARIANTES = 3
+
     for n, v in enumerate(tenue.get("variantes", [])):
+        if len(existantes) >= MAX_VARIANTES:
+            break
         vk = variant_key(outfit.id, v["ports"])
         if vk in existantes:
             continue
@@ -89,7 +93,6 @@ def sauver_tenue(s: Session, user_id, tenue: dict) -> tuple[Outfit, bool]:
 
     s.flush()
     return outfit, cree
-
 
 def quota_restant(s: Session, user_id) -> int:
     """Nombre de rendus encore autorises aujourd'hui."""
@@ -127,22 +130,24 @@ def _prompt(items: list, ports: dict) -> str:
         f"Habille la personne de l'image 1 avec ces {len(items)} pieces.",
         "Superposition, du plus pres du corps au plus exterieur : "
         + ", ".join(i.slot for i in items) + ".",
-    ]
-
-    instructions = [
-        f"{item.slot} {ports[str(n)] if str(n) in ports else ports.get(n)}"
-        for n, item in enumerate(items)
-        if ports.get(n) or ports.get(str(n))
-    ]
-    if instructions:
-        lignes.append("Port : " + " ; ".join(instructions) + ".")
-
-    lignes += [
         "",
         "Photographie en pied, eclairage neutre et uniforme, fond identique "
         "a l'image 1.",
         "N'ajoute AUCUN vetement ni accessoire qui ne soit pas liste ci-dessus.",
     ]
+
+    instructions = [
+        f"{item.slot} : {ports.get(str(n)) or ports.get(n)}"
+        for n, item in enumerate(items)
+        if ports.get(str(n)) or ports.get(n)
+    ]
+    if instructions:
+        lignes += [
+            "",
+            "IMPERATIF - respecte exactement ces details, ils definissent la tenue :",
+            *[f"- {inst}" for inst in instructions],
+        ]
+
     return "\n".join(lignes)
 
 
@@ -181,14 +186,26 @@ def rendre(s: Session, user_id, variant: Variant, forcer: bool = False) -> Rende
         contenus.append(_part(Path(item.garment.image_path)))
     contenus.append(_prompt(items, variant.ports))
 
-    try:
-        resp = client.models.generate_content(
-            model=settings.model_image, contents=contenus
-        )
-    except Exception as e:
-        render.status = "erreur"
-        render.erreur = str(e)[:500]
-        return render
+    resp = None
+    for tentative in range(3):
+        try:
+            resp = client.models.generate_content(
+                model=settings.model_image, contents=contenus
+            )
+            break
+        except Exception as e:
+            if "503" in str(e) and tentative < 2:
+                time.sleep(15 * (tentative + 1))
+            else:
+                render.status = "erreur"
+                render.erreur = str(e)[:500]
+                return render
+
+    settings.dir_renders.mkdir(parents=True, exist_ok=True)
+    horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    for part in resp.candidates[0].content.parts:
+        ...
 
     settings.dir_renders.mkdir(parents=True, exist_ok=True)
     horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")

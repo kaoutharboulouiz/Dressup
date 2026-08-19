@@ -75,7 +75,15 @@ def affecter(
     )
 
     pieces_scoring = [
-        {"slot": g.slot, "couleur_hex": g.couleur_hex, "formalite": g.formalite}
+        {
+            "slot": g.slot,
+            "couleur_hex": g.couleur_hex,
+            "formalite": g.formalite,
+            "motif": g.attributs.get("motif", "uni"),
+            "longueur": g.attributs.get("longueur"),
+            "texture": g.attributs.get("texture"),
+            "poids_visuel": g.attributs.get("poids_visuel", 3),
+        }
         for g, _, _ in plan
     ]
     harmonie = score_tenue(pieces_scoring)
@@ -136,8 +144,6 @@ def proposer_tenues(
         tenues.append(t)
 
     tenues.sort(key=lambda t: t["score"], reverse=True)
-    tenues.sort(key=lambda t: t["score"], reverse=True)
-
     # Penalite de repetition : chaque reapparition d'un vetement degrade le score
     vus: dict = {}
     for t in tenues:

@@ -6,7 +6,6 @@ from google.genai import types
 from app.config import settings
 
 client = genai.Client(api_key=settings.gemini_api_key)
-
 PROMPT_GARMENT = """Tu analyses la photo d'UN seul vetement.
 Reponds uniquement par un objet JSON, sans texte autour :
 
@@ -15,10 +14,13 @@ Reponds uniquement par un objet JSON, sans texte autour :
   "categorie": "nom precis en francais, ex. chemise oxford, jean droit",
   "couleur_hex": "#RRGGBB de la couleur dominante du tissu",
   "couleur_nom": "nom courant, ex. bleu indigo, blanc casse",
-  "formalite": 1,
+  "formalite": 3,
   "motif": "uni | raye | carreaux | imprime | fleuri | autre",
   "matiere": "matiere apparente, ex. denim, popeline, maille",
   "coupe": "ex. droite, oversize, ajustee",
+  "longueur": "courte | standard | longue",
+  "texture": "lisse | fluide | structuree | brillante | texturee",
+  "poids_visuel": 3,
   "saison": ["printemps", "ete", "automne", "hiver"],
   "description": "2 phrases decrivant le vetement comme un styliste"
 }
@@ -26,8 +28,20 @@ Reponds uniquement par un objet JSON, sans texte autour :
 Regles :
 - formalite : 1=sport, 2=casual, 3=quotidien, 4=smart casual, 5=ceremonie
 - couleur_hex doit refleter le tissu, pas le fond
+- longueur : pour un haut, "courte" s'arrete au-dessus de la taille, "standard"
+  a la taille ou aux hanches, "longue" descend sous les hanches. Pour un bas,
+  "courte" = au-dessus du genou, "longue" = sous le mollet.
+- texture : decrit le COMPORTEMENT du tissu, pas la fibre. Une mousseline et
+  une soie legere sont toutes deux "fluide". Un jean et un tweed sont
+  "structuree".
+- poids_visuel : entier de 1 a 5, combien la piece capte le regard.
+    1 = s'efface completement (tee-shirt uni, jean brut basique)
+    2 = discrete
+    3 = du caractere : coupe marquee, couleur franche
+    4 = forte : imprime visible, volants, drape spectaculaire
+    5 = statement absolu : sequins, structure sculpturale, imprime eclatant
+  Sois severe : une garde-robe est majoritairement en 1-3. Un 5 doit etre rare.
 - description sera utilisee pour recherche semantique : sois concrete"""
-
 
 def _parse(txt: str) -> dict:
     txt = txt.strip()

@@ -103,9 +103,46 @@ def score_tenue(pieces: list[dict]) -> dict:
         for j in range(i + 1, len(pieces))
     ]
     c = round(sum(paires) / len(paires), 3) if paires else 1.0
+    brut = 0.65 * c + 0.35 * f
+    m = malus_focal(pieces) * malus_superposition(pieces)
 
     return {
-        "score": round(0.65 * c + 0.35 * f, 3),
+        "score": round(brut * m, 3),
         "couleur": c,
         "formalite": f,
+        "malus": round(m, 3),
     }
+    
+POIDS_STATEMENT = 4
+
+
+def malus_focal(pieces: list[dict]) -> float:
+    """Une tenue supporte un seul point focal."""
+    fortes = sum(
+        1 for p in pieces if int(p.get("poids_visuel") or 3) >= POIDS_STATEMENT
+    )
+    return 1.0 if fortes <= 1 else 0.55 ** (fortes - 1)
+
+
+def malus_superposition(pieces: list[dict]) -> float:
+    """Hierarchie entre deux pieces d'un meme slot."""
+    par_slot: dict[str, list[dict]] = {}
+    for p in pieces:
+        par_slot.setdefault(p["slot"], []).append(p)
+
+    malus = 1.0
+    for couches in par_slot.values():
+        if len(couches) < 2:
+            continue
+        a, b = couches[0], couches[1]
+
+        if a.get("motif", "uni") != "uni" and b.get("motif", "uni") != "uni":
+            malus *= 0.50            # deux motifs se battent
+
+        if a.get("longueur") and a.get("longueur") == b.get("longueur"):
+            malus *= 0.70            # pas d'echelonnement visible
+
+        if a.get("texture") and a.get("texture") == b.get("texture"):
+            malus *= 0.75            # les couches ne se distinguent pas
+
+    return malus
