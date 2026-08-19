@@ -152,3 +152,21 @@ def proposer_tenues(
 
     tenues.sort(key=lambda t: t["score"], reverse=True)
     return tenues
+
+def grouper_par_outfit(tenues: list[dict]) -> list[dict]:
+    """Fusionne les tenues qui utilisent le meme ensemble de vetements.
+
+    Retourne une tenue par ensemble distinct, avec toutes les recettes
+    convergentes dans la cle 'recettes'.
+    """
+    groupes: dict[frozenset, dict] = {}
+
+    for t in tenues:
+        cle = frozenset(i["garment"].id for i in t["items"])
+        if cle in groupes:
+            groupes[cle]["recettes"].append(t["recette"])
+        else:
+            t["recettes"] = [t["recette"]]
+            groupes[cle] = t
+
+    return list(groupes.values())

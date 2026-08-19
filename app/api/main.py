@@ -13,11 +13,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
-from app.models import Avatar, Garment, Outfit, Render, User
 from app.rendering.service import quota_restant, rendre, sauver_tenue
-from app.styling.matching import proposer_tenues
 from app.styling.retrieval import recettes_pour_ancres
-from app.styling.stylist import styliser_lot_intelligent
+from app.models import Avatar, Garment, Outfit, Render, User, Variant
+from app.styling.matching import grouper_par_outfit, proposer_tenues
+from app.styling.stylist import styliser
 
 app = FastAPI(title="Dressup")
 
@@ -68,18 +68,64 @@ class ItemOut(BaseModel):
     is_anchor: bool
 
 
+class VariantOut(BaseModel):
+    id: uuid.UUID
+    titre: str
+    justification_port: str | None
+    silhouette: str | None
+    source: str
+    ports: dict
+    render_id: uuid.UUID | None
+    render_status: str | None
+
+
 class OutfitOut(BaseModel):
     id: uuid.UUID
     score: float
     harmonie: float
     couverture: float
-    justification: str | None
-    occasion: str | None
+    justification_tenue: str | None
     items: list[ItemOut]
-    render_id: uuid.UUID | None
-    render_status: str | None
+    variants: list[VariantOut]
 
+def _serialiser(s: Session, outfit: Outfit) -> OutfitOut:
+    variants = []
+    for v in sorted(outfit.variants, key=lambda x: x.ordre):
+        dernier = s.scalar(
+            select(Render)
+            .where(Render.variant_id == v.id)
+            .order_by(Render.created_at.desc())
+        )
+        variants.append(VariantOut(
+            id=v.id,
+            titre=v.titre,
+            justification_port=v.justification_port,
+            silhouette=v.silhouette,
+            source=v.source,
+            ports=v.ports,
+            render_id=dernier.id if dernier else None,
+            render_status=dernier.status if dernier else None,
+        ))
 
+    return OutfitOut(
+        id=outfit.id,
+        score=outfit.score,
+        harmonie=outfit.harmonie,
+        couverture=outfit.couverture,
+        justification_tenue=outfit.justification_tenue,
+        items=[
+            ItemOut(
+                garment_id=it.garment_id,
+                slot=it.slot,
+                categorie=it.garment.categorie,
+                couleur_hex=it.garment.couleur_hex,
+                port=it.port,
+                is_anchor=it.is_anchor,
+            )
+            for it in sorted(outfit.items, key=lambda x: x.ordre)
+        ],
+        variants=variants,
+    )
 # ---------- Routes ----------
 
 @app.get("/garments", response_model=list[GarmentOut])
@@ -115,80 +161,54 @@ def proposer(body: ProposeIn, s: Session = Depends(get_db)):
     if not tenues:
         return []
 
-    tenues = styliser_lot_intelligent(s, user.id, tenues, n=body.n)
+    tenues = grouper_par_outfit(tenues)[: body.n]
 
     sortie = []
-    for t in tenues[: body.n]:
+    for t in tenues:
+        styliser(t, t.get("recettes"))
         outfit, _ = sauver_tenue(s, user.id, t)
         s.commit()
-
-        dernier = s.scalar(
-            select(Render)
-            .where(Render.outfit_id == outfit.id)
-            .order_by(Render.created_at.desc())
-        )
-
-        sortie.append(OutfitOut(
-            id=outfit.id,
-            score=t["score"],
-            harmonie=t["harmonie"],
-            couverture=t["couverture"],
-            justification=outfit.justification,
-            occasion=outfit.occasion,
-            items=[
-                ItemOut(
-                    garment_id=i["garment"].id,
-                    slot=i["slot"],
-                    categorie=i["garment"].categorie,
-                    couleur_hex=i["garment"].couleur_hex,
-                    port=i.get("port_transpose") or i.get("port"),
-                    is_anchor=i["is_anchor"],
-                )
-                for i in t["items"]
-            ],
-            render_id=dernier.id if dernier else None,
-            render_status=dernier.status if dernier else None,
-        ))
+        s.refresh(outfit)
+        sortie.append(_serialiser(s, outfit))
     return sortie
 
 
-def _travail_rendu(outfit_id: uuid.UUID, user_id: uuid.UUID):
-    """Tache de fond : sa propre session, l'API a deja rendu la main."""
+def _travail_rendu(variant_id: uuid.UUID, user_id: uuid.UUID):
     s = SessionLocal()
     try:
-        outfit = s.get(Outfit, outfit_id)
-        rendre(s, user_id, outfit)
+        variant = s.get(Variant, variant_id)
+        rendre(s, user_id, variant)
         s.commit()
     except Exception as e:
         s.rollback()
-        print(f"rendu {outfit_id} echoue : {e}")
+        print(f"rendu {variant_id} echoue : {e}")
     finally:
         s.close()
 
 
-@app.post("/outfits/{outfit_id}/render")
+@app.post("/variants/{variant_id}/render")
 def lancer_rendu(
-    outfit_id: uuid.UUID,
+    variant_id: uuid.UUID,
     taches: BackgroundTasks,
     s: Session = Depends(get_db),
 ):
     user = get_user(s)
-    outfit = s.get(Outfit, outfit_id)
-    if outfit is None or outfit.user_id != user.id:
-        raise HTTPException(404, "tenue introuvable")
+    variant = s.get(Variant, variant_id)
+    if variant is None or variant.outfit.user_id != user.id:
+        raise HTTPException(404, "variante introuvable")
 
     if quota_restant(s, user.id) <= 0:
         raise HTTPException(429, "quota journalier atteint")
 
-    taches.add_task(_travail_rendu, outfit_id, user.id)
+    taches.add_task(_travail_rendu, variant_id, user.id)
     return {"status": "pending"}
 
 
-@app.get("/outfits/{outfit_id}/render")
-def statut_rendu(outfit_id: uuid.UUID, s: Session = Depends(get_db)):
+@app.get("/variants/{variant_id}/render")
+def statut_rendu(variant_id: uuid.UUID, s: Session = Depends(get_db)):
     r = s.scalar(
         select(Render)
-        .where(Render.outfit_id == outfit_id)
+        .where(Render.variant_id == variant_id)
         .order_by(Render.created_at.desc())
     )
     if r is None:
@@ -214,7 +234,6 @@ def image_garment(garment_id: uuid.UUID, s: Session = Depends(get_db)):
 
 @app.get("/feed", response_model=list[OutfitOut])
 def feed(limite: int = 30, s: Session = Depends(get_db)):
-    """Tenues deja generees, les plus recentes d'abord."""
     user = get_user(s)
     outfits = s.scalars(
         select(Outfit)
@@ -222,33 +241,4 @@ def feed(limite: int = 30, s: Session = Depends(get_db)):
         .order_by(Outfit.created_at.desc())
         .limit(limite)
     ).all()
-
-    sortie = []
-    for o in outfits:
-        dernier = s.scalar(
-            select(Render)
-            .where(Render.outfit_id == o.id)
-            .order_by(Render.created_at.desc())
-        )
-        sortie.append(OutfitOut(
-            id=o.id,
-            score=o.score,
-            harmonie=o.harmonie,
-            couverture=o.couverture,
-            justification=o.justification,
-            occasion=o.occasion,
-            items=[
-                ItemOut(
-                    garment_id=it.garment_id,
-                    slot=it.slot,
-                    categorie=it.garment.categorie,
-                    couleur_hex=it.garment.couleur_hex,
-                    port=it.port,
-                    is_anchor=it.is_anchor,
-                )
-                for it in sorted(o.items, key=lambda x: x.ordre)
-            ],
-            render_id=dernier.id if dernier else None,
-            render_status=dernier.status if dernier else None,
-        ))
-    return sortie
+    return [_serialiser(s, o) for o in outfits]

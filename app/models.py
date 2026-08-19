@@ -55,18 +55,53 @@ class Recipe(Base):
 class Outfit(Base):
     __tablename__ = "outfits"
     __table_args__ = (UniqueConstraint("outfit_key", name="uq_outfit_key"),)
+
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
-    recipe_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("recipes.id"))
+    outfit_key: Mapped[str] = mapped_column(String(64), index=True)
     score: Mapped[float] = mapped_column(Float)
     couverture: Mapped[float] = mapped_column(Float)
     harmonie: Mapped[float] = mapped_column(Float)
-    justification: Mapped[str | None] = mapped_column(Text)
-    occasion: Mapped[str | None] = mapped_column(String(80))
-    styling_spec: Mapped[dict] = mapped_column(JSONB, default=dict)
+    justification_tenue: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
     items: Mapped[list["OutfitItem"]] = relationship(back_populates="outfit")
-    outfit_key: Mapped[str] = mapped_column(String(64), index=True)
+    variants: Mapped[list["Variant"]] = relationship(back_populates="outfit")
+
+
+class Variant(Base):
+    __tablename__ = "variants"
+    __table_args__ = (UniqueConstraint("variant_key", name="uq_variant_key"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    outfit_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("outfits.id"))
+    recipe_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("recipes.id"))
+    variant_key: Mapped[str] = mapped_column(String(64), index=True)
+
+    titre: Mapped[str] = mapped_column(String(80))
+    ports: Mapped[dict] = mapped_column(JSONB, default=dict)
+    justification_port: Mapped[str | None] = mapped_column(Text)
+    silhouette: Mapped[str | None] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(String(12), default="styliste")
+    ordre: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    outfit: Mapped[Outfit] = relationship(back_populates="variants")
+
+
+class Render(Base):
+    __tablename__ = "renders"
+    __table_args__ = (UniqueConstraint("render_key", name="uq_render_key"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    variant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("variants.id"))
+    avatar_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("avatars.id"))
+    render_key: Mapped[str] = mapped_column(String(64), index=True)
+    status: Mapped[str] = mapped_column(String(12), default="pending")
+    provider: Mapped[str] = mapped_column(String(60))
+    image_path: Mapped[str | None] = mapped_column(Text)
+    erreur: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class OutfitItem(Base):
@@ -82,18 +117,6 @@ class OutfitItem(Base):
     garment: Mapped[Garment] = relationship()
 
 
-class Render(Base):
-    __tablename__ = "renders"
-    __table_args__ = (UniqueConstraint("render_key", name="uq_render_key"),)
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    outfit_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("outfits.id"))
-    avatar_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("avatars.id"))
-    render_key: Mapped[str] = mapped_column(String(64), index=True)
-    status: Mapped[str] = mapped_column(String(12), default="pending")
-    provider: Mapped[str] = mapped_column(String(60))
-    image_path: Mapped[str | None] = mapped_column(Text)
-    erreur: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Avatar(Base):
