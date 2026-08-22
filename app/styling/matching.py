@@ -64,10 +64,8 @@ def affecter(
         utilises.add(meilleur.id)
     
     if not _superposition_valide(plan):
-        print("[debug] rejet superposition")
         return None
     if not _viable(plan):
-        print("[debug] rejet viabilite")
         return None
 
     # Couverture calculee sur les seuls slots obligatoires
@@ -133,7 +131,6 @@ def proposer_tenues(
     ancres: list[Garment],
     recettes_scorees: list[tuple[Recipe, float]],
 ) -> list[dict]:
-    print(f"[debug] {len(recettes_scorees)} recettes candidates")
     """Applique l'affectation a chaque recette candidate, trie par score."""
     garde_robe = s.scalars(
         select(Garment).where(
@@ -162,9 +159,7 @@ def proposer_tenues(
             malus += 0.05 * vus.get(gid, 0)
             vus[gid] = vus.get(gid, 0) + 1
         t["score"] = round(max(0.0, t["score"] - malus), 3)
-    print(f"[debug] {len(tenues)} tenues avant seuil harmonie")
     tenues = [t for t in tenues if t["harmonie"] >= SEUIL_TENUE]
-    print(f"[debug] {len(tenues)} apres seuil harmonie")
     tenues.sort(key=lambda t: t["score"], reverse=True)
     return tenues
 
