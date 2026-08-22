@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import uuid
 from pathlib import Path
-
+from fastapi.security import HTTPAuthorizationCredentials
+from app.auth import creer_token, hacher, lire_token, securite, verifier
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -37,11 +38,19 @@ def get_db():
         s.close()
 
 
-def get_user(s: Session, handle: str = "kaouthar") -> User:
-    u = s.scalar(select(User).where(User.handle == handle))
-    if u is None:
-        raise HTTPException(404, "utilisateur introuvable")
-    return u
+
+
+def utilisateur_courant(
+    creds: HTTPAuthorizationCredentials = Depends(securite),
+    s: Session = Depends(get_db),
+) -> User:
+    if creds is None:
+        raise HTTPException(401, "authentification requise")
+    user_id = lire_token(creds.credentials)
+    user = s.get(User, user_id)
+    if user is None:
+        raise HTTPException(401, "utilisateur introuvable")
+    return user
 
 
 # ---------- Schemas ----------
@@ -129,8 +138,10 @@ def _serialiser(s: Session, outfit: Outfit) -> OutfitOut:
 # ---------- Routes ----------
 
 @app.get("/garments", response_model=list[GarmentOut])
-def lister_garments(s: Session = Depends(get_db)):
-    user = get_user(s)
+def lister_garments(
+    user: User = Depends(utilisateur_courant),
+    s: Session = Depends(get_db),
+    ):
     return s.scalars(
         select(Garment)
         .where(Garment.user_id == user.id)
@@ -139,15 +150,19 @@ def lister_garments(s: Session = Depends(get_db)):
 
 
 @app.get("/quota")
-def lire_quota(s: Session = Depends(get_db)):
-    user = get_user(s)
+def lire_quota(
+    user: User = Depends(utilisateur_courant),
+    s: Session = Depends(get_db),
+    ):
     return {"restant": quota_restant(s, user.id)}
 
 
 @app.post("/outfits/propose", response_model=list[OutfitOut])
-def proposer(body: ProposeIn, s: Session = Depends(get_db)):
-    user = get_user(s)
-
+def proposer(
+    body: ProposeIn,
+    user: User = Depends(utilisateur_courant),
+    s: Session = Depends(get_db),
+    ):
     ancres = s.scalars(
         select(Garment).where(
             Garment.user_id == user.id, Garment.id.in_(body.ancre_ids)
@@ -191,14 +206,13 @@ def _travail_rendu(variant_id: uuid.UUID, user_id: uuid.UUID):
     finally:
         s.close()
 
-
 @app.post("/variants/{variant_id}/render")
 def lancer_rendu(
     variant_id: uuid.UUID,
     taches: BackgroundTasks,
+    user: User = Depends(utilisateur_courant),
     s: Session = Depends(get_db),
-):
-    user = get_user(s)
+    ):
     variant = s.get(Variant, variant_id)
     if variant is None or variant.outfit.user_id != user.id:
         raise HTTPException(404, "variante introuvable")
@@ -211,7 +225,14 @@ def lancer_rendu(
 
 
 @app.get("/variants/{variant_id}/render")
-def statut_rendu(variant_id: uuid.UUID, s: Session = Depends(get_db)):
+def statut_rendu(
+    variant_id: uuid.UUID,
+    user: User = Depends(utilisateur_courant),
+    s: Session = Depends(get_db),
+    ):
+    variant = s.get(Variant, variant_id)
+    if variant is None or variant.outfit.user_id != user.id:
+        raise HTTPException(404, "variante introuvable")
     r = s.scalar(
         select(Render)
         .where(Render.variant_id == variant_id)
@@ -221,26 +242,39 @@ def statut_rendu(variant_id: uuid.UUID, s: Session = Depends(get_db)):
         return {"status": "absent"}
     return {"id": r.id, "status": r.status, "erreur": r.erreur}
 
-
 @app.get("/renders/{render_id}/image")
-def image_rendu(render_id: uuid.UUID, s: Session = Depends(get_db)):
+def image_rendu(
+    render_id: uuid.UUID,
+    user: User = Depends(utilisateur_courant),
+    s: Session = Depends(get_db),
+    ):
     r = s.get(Render, render_id)
-    if r is None or r.status != "ok" or not r.image_path:
+    if r is None or r.variant.outfit.user_id != user.id:
+        raise HTTPException(404, "image indisponible")
+    if r.status != "ok" or not r.image_path:
         raise HTTPException(404, "image indisponible")
     return FileResponse(r.image_path, media_type="image/png")
 
 
 @app.get("/garments/{garment_id}/image")
-def image_garment(garment_id: uuid.UUID, s: Session = Depends(get_db)):
+def image_garment(
+    garment_id: uuid.UUID,
+    user: User = Depends(utilisateur_courant),
+    s: Session = Depends(get_db),
+    ):
     g = s.get(Garment, garment_id)
-    if g is None or not Path(g.image_path).exists():
+    if g is None or g.user_id != user.id:
+        raise HTTPException(404, "image introuvable")
+    if not Path(g.image_path).exists():
         raise HTTPException(404, "image introuvable")
     return FileResponse(g.image_path)
 
-
 @app.get("/feed", response_model=list[OutfitOut])
-def feed(limite: int = 30, s: Session = Depends(get_db)):
-    user = get_user(s)
+def feed(
+    limite: int = 30,
+    user: User = Depends(utilisateur_courant),
+    s: Session = Depends(get_db),
+    ):
     outfits = s.scalars(
         select(Outfit)
         .where(Outfit.user_id == user.id)
@@ -248,3 +282,53 @@ def feed(limite: int = 30, s: Session = Depends(get_db)):
         .limit(limite)
     ).all()
     return [_serialiser(s, o) for o in outfits]
+class InscriptionIn(BaseModel):
+    email: str
+    mot_de_passe: str
+    prenom: str | None = None
+
+
+class ConnexionIn(BaseModel):
+    email: str
+    mot_de_passe: str
+
+
+class TokenOut(BaseModel):
+    access_token: str
+    handle: str
+
+
+@app.post("/auth/inscription", response_model=TokenOut)
+def inscription(body: InscriptionIn, s: Session = Depends(get_db)):
+    if len(body.mot_de_passe) < 8:
+        raise HTTPException(400, "mot de passe trop court (8 caracteres minimum)")
+
+    existant = s.scalar(select(User).where(User.email == body.email.lower()))
+    if existant is not None:
+        raise HTTPException(409, "cet email est deja utilise")
+
+    user = User(
+        handle=body.email.split("@")[0].lower(),
+        email=body.email.lower(),
+        mot_de_passe_hash=hacher(body.mot_de_passe),
+        prenom=body.prenom,
+    )
+    s.add(user)
+    s.commit()
+    return TokenOut(access_token=creer_token(user.id), handle=user.handle)
+
+
+@app.post("/auth/connexion", response_model=TokenOut)
+def connexion(body: ConnexionIn, s: Session = Depends(get_db)):
+    user = s.scalar(select(User).where(User.email == body.email.lower()))
+    if user is None or not user.mot_de_passe_hash:
+        raise HTTPException(401, "identifiants invalides")
+    if not verifier(body.mot_de_passe, user.mot_de_passe_hash):
+        raise HTTPException(401, "identifiants invalides")
+    return TokenOut(access_token=creer_token(user.id), handle=user.handle)
+
+
+@app.get("/auth/moi")
+def moi(user: User = Depends(utilisateur_courant)):
+    return {"id": user.id, "handle": user.handle, "prenom": user.prenom,
+            "pinterest_connecte": bool(user.pinterest_token)}

@@ -22,6 +22,8 @@ class User(Base):
     garments: Mapped[list["Garment"]] = relationship(back_populates="user")
     pinterest_token: Mapped[str | None] = mapped_column(Text)
     pinterest_last_sync: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    email: Mapped[str | None] = mapped_column(String(160), unique=True)
+    mot_de_passe_hash: Mapped[str | None] = mapped_column(String(128))
 
 class Garment(Base):
     __tablename__ = "garments"
@@ -104,6 +106,7 @@ class Render(Base):
     image_path: Mapped[str | None] = mapped_column(Text)
     erreur: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    variant: Mapped["Variant"] = relationship()
 
 
 class OutfitItem(Base):
