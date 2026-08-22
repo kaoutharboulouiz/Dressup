@@ -20,6 +20,8 @@ class User(Base):
     taille_cm: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     garments: Mapped[list["Garment"]] = relationship(back_populates="user")
+    pinterest_token: Mapped[str | None] = mapped_column(Text)
+    pinterest_last_sync: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 class Garment(Base):
     __tablename__ = "garments"
