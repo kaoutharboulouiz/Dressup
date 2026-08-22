@@ -23,6 +23,7 @@ Reponds uniquement par un objet JSON, sans texte autour :
   "poids_visuel": 3,
   "saison": ["printemps", "ete", "automne", "hiver"],
   "description": "2 phrases decrivant le vetement comme un styliste"
+  "superposable": "dessous | dessus | seul"
 }
 
 Regles :
@@ -35,13 +36,28 @@ Regles :
   une soie legere sont toutes deux "fluide". Un jean et un tweed sont
   "structuree".
 - poids_visuel : entier de 1 a 5, combien la piece capte le regard.
-    1 = s'efface completement (tee-shirt uni, jean brut basique)
-    2 = discrete
-    3 = du caractere : coupe marquee, couleur franche
-    4 = forte : imprime visible, volants, drape spectaculaire
-    5 = statement absolu : sequins, structure sculpturale, imprime eclatant
-  Sois severe : une garde-robe est majoritairement en 1-3. Un 5 doit etre rare.
-- description sera utilisee pour recherche semantique : sois concrete"""
+    1 = s'efface (tee-shirt uni, jean brut, chemise blanche, basique noir)
+    2 = discrete : une couleur ou une coupe legerement marquee
+    3 = du caractere, mais reste une piece de fond
+    4 = RARE. La piece autour de laquelle on construit toute la tenue.
+    5 = TRES RARE. Sequins, structure sculpturale, imprime eclatant.
+  Calibrage : dans une garde-robe de 36 pieces, on attend environ 20 pieces en
+  1-2, 12 en 3, 3 ou 4 en 4, et 0 ou 1 en 5. Si tu hesites entre deux valeurs,
+  prends TOUJOURS la plus basse. Un joli vetement n'est pas un statement.
+- description sera utilisee pour recherche semantique : sois concrete
+- superposable : la capacite de la piece a se superposer.
+    "dessus" = peut se porter PAR-DESSUS un autre haut : cardigan, chemise
+               ouverte, gilet, pull ample, veste. Une piece OUVRANTE ou tres
+               ample.
+    "dessous" = peut se porter SOUS une piece ouverte. C'est le cas de la
+                PLUPART des hauts : tee-shirt, debardeur, caraco, top drape,
+                blouse, chemise fine. Une piece a volants ou a sequins reste
+                "dessous" : elle est juste plus visible.
+    "seul" = RARE. Reserve aux pieces dont la structure interdit toute couche :
+             bustier rigide, corset, dos-nu a bretelles croisees dans le dos.
+  Par defaut, un haut est "dessous". Ne mets "seul" que si la construction du
+  vetement rend physiquement impossible de porter quelque chose par-dessus.
+  Dans le doute, mets "seul"."""
 
 def _parse(txt: str) -> dict:
     txt = txt.strip()

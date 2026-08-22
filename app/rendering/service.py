@@ -66,7 +66,7 @@ def sauver_tenue(s: Session, user_id, tenue: dict) -> tuple[Outfit, bool]:
                 ordre=item["ordre"],
             ))
 
-        recettes = tenue.get("recettes") or [tenue["recette"]]
+    recettes = tenue.get("recettes") or [tenue["recette"]]
     recipe_id = recettes[0].id if recettes else None
     existantes = {v.variant_key for v in outfit.variants}
 

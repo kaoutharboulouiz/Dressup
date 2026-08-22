@@ -11,6 +11,8 @@ from app.styling.scoring import score_tenue
 
 # En dessous : on prefere laisser le slot vide plutot qu'affecter une approximation
 SEUIL_AFFECTATION = 0.62
+# En dessous : la tenue n'est pas proposee, meme si c'est la meilleure disponible
+SEUIL_TENUE = 0.55
 
 # Slots dont l'absence ne degrade pas la tenue
 SLOTS_OPTIONNELS = {"accessoire", "veste"}
@@ -60,8 +62,12 @@ def affecter(
 
         plan.append((meilleur, piece, False))
         utilises.add(meilleur.id)
-
+    
+    if not _superposition_valide(plan):
+        print("[debug] rejet superposition")
+        return None
     if not _viable(plan):
+        print("[debug] rejet viabilite")
         return None
 
     # Couverture calculee sur les seuls slots obligatoires
@@ -127,6 +133,7 @@ def proposer_tenues(
     ancres: list[Garment],
     recettes_scorees: list[tuple[Recipe, float]],
 ) -> list[dict]:
+    print(f"[debug] {len(recettes_scorees)} recettes candidates")
     """Applique l'affectation a chaque recette candidate, trie par score."""
     garde_robe = s.scalars(
         select(Garment).where(
@@ -155,7 +162,9 @@ def proposer_tenues(
             malus += 0.05 * vus.get(gid, 0)
             vus[gid] = vus.get(gid, 0) + 1
         t["score"] = round(max(0.0, t["score"] - malus), 3)
-
+    print(f"[debug] {len(tenues)} tenues avant seuil harmonie")
+    tenues = [t for t in tenues if t["harmonie"] >= SEUIL_TENUE]
+    print(f"[debug] {len(tenues)} apres seuil harmonie")
     tenues.sort(key=lambda t: t["score"], reverse=True)
     return tenues
 
@@ -176,3 +185,19 @@ def grouper_par_outfit(tenues: list[dict]) -> list[dict]:
             groupes[cle] = t
 
     return list(groupes.values())
+def _superposition_valide(plan) -> bool:
+    """Deux pieces d'un meme slot : l'une doit aller dessus, l'autre dessous."""
+    par_slot: dict[str, list] = {}
+    for g, _, _ in plan:
+        par_slot.setdefault(g.slot, []).append(g)
+
+    for slot, couches in par_slot.items():
+        if slot in ("chaussures", "accessoire") or len(couches) < 2:
+            continue
+        if len(couches) > 2:
+            return False              # trois couches : jamais
+        caps = {g.attributs.get("superposable", "seul") for g in couches}
+        if caps != {"dessus", "dessous"}:
+            return False
+
+    return True

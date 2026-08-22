@@ -1,7 +1,7 @@
 """Recuperation de recettes d'inspiration pertinentes pour une piece ancre."""
 
 from __future__ import annotations
-
+SLOTS_OPTIONNELS = {"accessoire", "veste"}
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -58,10 +58,12 @@ def recettes_pour_ancres(
                 default=0.0,
             )
             if meilleur == 0.0:
-                break               # cette ancre n'a pas sa place ici
+                if ancre.slot in SLOTS_OPTIONNELS:
+                    scores_ancres.append(0.45)   # s'ajoute par-dessus
+                    continue
+                break
             scores_ancres.append(meilleur)
         else:
-            # boucle terminee sans break : toutes les ancres sont placees
             moyenne = sum(scores_ancres) / len(scores_ancres)
             resultats.append((r, round(moyenne, 3)))
 
