@@ -1,0 +1,37 @@
+from pathlib import Path
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA = ROOT / "data"
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=ROOT / ".env", extra="ignore")
+
+    gemini_api_key: str
+
+    model_vision: str = "gemini-3-pro-image"
+    model_image: str = "gemini-3-pro-image"
+    model_image_draft: str = "gemini-3-pro-image"
+    model_embed: str = "models/gemini-embedding-001"
+    embed_dim: int = 3072
+    jwt_secret: str 
+    jwt_expire_heures: int = 168
+
+    database_url: str = "postgresql+psycopg://dressing:dressing@localhost:5433/dressing"
+    max_renders_par_jour: int = 40
+
+    @property
+    def dir_wardrobe(self) -> Path:
+        return DATA / "wardrobe"
+
+    @property
+    def dir_cutouts(self) -> Path:
+        return DATA / "cutouts"
+
+    @property
+    def dir_renders(self) -> Path:
+        return DATA / "renders"
+
+
+settings = Settings()
