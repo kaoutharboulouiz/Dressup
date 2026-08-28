@@ -2,7 +2,7 @@
 
 #  Dressup
 
-**Un assistant de garde-robe qui compose des tenues avec ce que vous possédez déjà —
+**Un assistant de garde-robe qui compose des tenues avec ce que vous possédez déjà,
 inspirées de votre propre style, et rendues en photo sur votre avatar.**
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=18&duration=3000&pause=800&color=2C2A27&center=true&vCenter=true&width=560&lines=Choisissez+une+pi%C3%A8ce+%C3%A0+porter.;L'IA+cherche+dans+vos+inspirations.;Le+moteur+compose+avec+votre+garde-robe.;Le+rendu+vous+montre+le+r%C3%A9sultat." alt="démo animée" />
