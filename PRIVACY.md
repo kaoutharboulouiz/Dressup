@@ -14,4 +14,4 @@ processed in memory and never stored.
 **Retention:** Data is stored locally on the developer's machine and 
 can be deleted at any time.
 
-**Contact:** ton@email.com
+**Contact:** kaoutharboulouiz@gmail.com
