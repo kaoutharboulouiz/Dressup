@@ -1,0 +1,367 @@
+{
+  "communities": {
+    "0": [
+      "app_api_main",
+      "app_api_main_connexion",
+      "app_api_main_connexionin",
+      "app_api_main_feed",
+      "app_api_main_garmentout",
+      "app_api_main_get_db",
+      "app_api_main_image_garment",
+      "app_api_main_image_rendu",
+      "app_api_main_inscription",
+      "app_api_main_inscriptionin",
+      "app_api_main_itemout",
+      "app_api_main_lancer_rendu",
+      "app_api_main_lire_quota",
+      "app_api_main_lister_garments",
+      "app_api_main_moi",
+      "app_api_main_outfitout",
+      "app_api_main_proposein",
+      "app_api_main_proposer",
+      "app_api_main_py_session",
+      "app_api_main_py_uuid",
+      "app_api_main_rationale_1",
+      "app_api_main_serialiser",
+      "app_api_main_statut_rendu",
+      "app_api_main_tokenout",
+      "app_api_main_travail_rendu",
+      "app_api_main_utilisateur_courant",
+      "app_api_main_variantout",
+      "app_auth",
+      "app_auth_creer_token",
+      "app_auth_hacher",
+      "app_auth_lire_token",
+      "app_auth_py_uuid",
+      "app_auth_rationale_1",
+      "app_auth_verifier",
+      "app_models_user",
+      "app_pinterest_get",
+      "app_rendering_service_outfit_key",
+      "app_rendering_service_rationale_22",
+      "app_styling_matching_grouper_par_outfit",
+      "app_styling_matching_rationale_167",
+      "backgroundtasks",
+      "basemodel",
+      "httpauthorizationcredentials",
+      "post"
+    ],
+    "1": [
+      "eslint",
+      "eslint_js",
+      "eslint_plugin_react_hooks",
+      "eslint_plugin_react_refresh",
+      "front_package",
+      "front_package_dependencies",
+      "front_package_dependencies_react",
+      "front_package_dependencies_react_dom",
+      "front_package_devdependencies",
+      "front_package_devdependencies_eslint",
+      "front_package_devdependencies_eslint_js",
+      "front_package_devdependencies_eslint_plugin_react_hooks",
+      "front_package_devdependencies_eslint_plugin_react_refresh",
+      "front_package_devdependencies_globals",
+      "front_package_devdependencies_types_react",
+      "front_package_devdependencies_types_react_dom",
+      "front_package_devdependencies_vite",
+      "front_package_devdependencies_vitejs_plugin_react",
+      "front_package_name",
+      "front_package_private",
+      "front_package_scripts",
+      "front_package_scripts_build",
+      "front_package_scripts_dev",
+      "front_package_scripts_lint",
+      "front_package_scripts_preview",
+      "front_package_type",
+      "front_package_version",
+      "globals",
+      "react",
+      "react_dom",
+      "types_react",
+      "types_react_dom",
+      "vite",
+      "vitejs_plugin_react"
+    ],
+    "2": [
+      "app_db",
+      "app_db_session",
+      "app_models",
+      "app_models_garment",
+      "app_models_recipe",
+      "app_styling_matching",
+      "app_styling_matching_affecter",
+      "app_styling_matching_proposer_tenues",
+      "app_styling_matching_py_session",
+      "app_styling_matching_rationale_1",
+      "app_styling_matching_rationale_119",
+      "app_styling_matching_rationale_134",
+      "app_styling_matching_rationale_184",
+      "app_styling_matching_rationale_29",
+      "app_styling_matching_superposition_valide",
+      "app_styling_matching_viable",
+      "app_styling_retrieval",
+      "app_styling_retrieval_piece_compatible",
+      "app_styling_retrieval_py_session",
+      "app_styling_retrieval_rationale_1",
+      "app_styling_retrieval_rationale_13",
+      "app_styling_retrieval_rationale_43",
+      "app_styling_retrieval_recettes_pour_ancres",
+      "scripts_02_ingest_inspirations",
+      "scripts_02_ingest_inspirations_main",
+      "scripts_04_generer",
+      "scripts_05_noter_qualite",
+      "scripts_06_calibrer_poids",
+      "scripts_06_calibrer_poids_main",
+      "scripts_06_calibrer_poids_rationale_1",
+      "scripts_test_matching",
+      "scripts_test_retrieval",
+      "scripts_test_stylist"
+    ],
+    "3": [
+      "app_pinterest",
+      "app_pinterest_lister_boards",
+      "app_pinterest_lister_pins",
+      "app_pinterest_rationale_1",
+      "app_pinterest_rationale_54",
+      "app_pinterest_url_image",
+      "app_styling_stylist",
+      "app_styling_stylist_payload",
+      "app_styling_stylist_rationale_1",
+      "app_styling_stylist_rationale_108",
+      "app_styling_stylist_styliser",
+      "app_vision",
+      "app_vision_embed",
+      "app_vision_extraire_garment",
+      "app_vision_extraire_recette",
+      "app_vision_image_part",
+      "app_vision_parse",
+      "app_vision_py_path",
+      "part",
+      "scripts_01_ingest_wardrobe",
+      "scripts_01_ingest_wardrobe_get_or_create_user",
+      "scripts_01_ingest_wardrobe_main",
+      "scripts_03_sync_pinterest",
+      "scripts_03_sync_pinterest_main",
+      "scripts_03_sync_pinterest_rationale_1"
+    ],
+    "4": [
+      "app_db_init_db",
+      "app_models_avatar",
+      "app_models_base",
+      "app_models_outfit",
+      "app_models_outfititem",
+      "app_models_render",
+      "app_models_variant",
+      "app_rendering_service",
+      "app_rendering_service_part",
+      "app_rendering_service_prompt",
+      "app_rendering_service_py_path",
+      "app_rendering_service_py_session",
+      "app_rendering_service_quota_restant",
+      "app_rendering_service_rationale_1",
+      "app_rendering_service_rationale_155",
+      "app_rendering_service_rationale_28",
+      "app_rendering_service_rationale_34",
+      "app_rendering_service_rationale_40",
+      "app_rendering_service_rationale_98",
+      "app_rendering_service_render_key",
+      "app_rendering_service_rendre",
+      "app_rendering_service_sauver_tenue",
+      "app_rendering_service_variant_key",
+      "declarativebase"
+    ],
+    "5": [
+      "app_styling_scoring",
+      "app_styling_scoring_ecart_teinte",
+      "app_styling_scoring_est_neutre",
+      "app_styling_scoring_hex_to_hsl",
+      "app_styling_scoring_malus_focal",
+      "app_styling_scoring_malus_superposition",
+      "app_styling_scoring_rationale_1",
+      "app_styling_scoring_rationale_120",
+      "app_styling_scoring_rationale_128",
+      "app_styling_scoring_rationale_22",
+      "app_styling_scoring_rationale_35",
+      "app_styling_scoring_rationale_47",
+      "app_styling_scoring_rationale_53",
+      "app_styling_scoring_rationale_82",
+      "app_styling_scoring_rationale_90",
+      "app_styling_scoring_score_couleur",
+      "app_styling_scoring_score_formalite",
+      "app_styling_scoring_score_tenue",
+      "scripts_test_scoring"
+    ],
+    "6": [
+      "app_config",
+      "app_config_py_path",
+      "app_config_settings",
+      "app_config_settings_dir_cutouts",
+      "app_config_settings_dir_renders",
+      "app_config_settings_dir_wardrobe",
+      "basesettings",
+      "scripts_00_smoke_render",
+      "scripts_00_smoke_render_construire_prompt",
+      "scripts_00_smoke_render_main",
+      "scripts_00_smoke_render_part"
+    ],
+    "7": [
+      "front_src_app",
+      "front_src_app_app",
+      "front_src_app_app_basculerancre",
+      "front_src_app_app_proposer",
+      "front_src_app_app_rafraichirquota",
+      "front_src_app_cartetenue",
+      "front_src_app_declinaison",
+      "front_src_app_declinaison_generer",
+      "front_src_app_slots",
+      "front_src_main"
+    ],
+    "8": [
+      "app_api_init"
+    ],
+    "9": [
+      "app_init"
+    ],
+    "10": [
+      "app_rendering_init"
+    ],
+    "11": [
+      "app_styling_init"
+    ],
+    "12": [
+      "front_eslint_config"
+    ],
+    "13": [
+      "front_vite_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.11733615221987315,
+    "1": 0.058823529411764705,
+    "2": 0.16856060606060605,
+    "3": 0.16,
+    "4": 0.15942028985507245,
+    "5": 0.18128654970760233,
+    "6": 0.2545454545454545,
+    "7": 0.2222222222222222,
+    "8": 1.0,
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0
+  },
+  "gods": [
+    {
+      "id": "app_models_user",
+      "label": "User",
+      "degree": 28
+    },
+    {
+      "id": "app_models_garment",
+      "label": "Garment",
+      "degree": 21
+    },
+    {
+      "id": "app_api_main_proposer",
+      "label": "proposer()",
+      "degree": 14
+    },
+    {
+      "id": "app_db_session",
+      "label": "session()",
+      "degree": 14
+    },
+    {
+      "id": "app_rendering_service_rendre",
+      "label": "rendre()",
+      "degree": 14
+    },
+    {
+      "id": "app_models_base",
+      "label": "Base",
+      "degree": 12
+    },
+    {
+      "id": "app_styling_retrieval_recettes_pour_ancres",
+      "label": "recettes_pour_ancres()",
+      "degree": 12
+    },
+    {
+      "id": "app_models_recipe",
+      "label": "Recipe",
+      "degree": 11
+    },
+    {
+      "id": "app_rendering_service_sauver_tenue",
+      "label": "sauver_tenue()",
+      "degree": 11
+    },
+    {
+      "id": "app_rendering_service_quota_restant",
+      "label": "quota_restant()",
+      "degree": 11
+    }
+  ],
+  "surprises": [
+    {
+      "source": "main()",
+      "target": "User",
+      "source_files": [
+        "scripts/02_ingest_inspirations.py",
+        "app/models.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "main()",
+      "target": "User",
+      "source_files": [
+        "scripts/03_sync_pinterest.py",
+        "app/models.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "main()",
+      "target": "User",
+      "source_files": [
+        "scripts/06_calibrer_poids.py",
+        "app/models.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "main()",
+      "target": "session()",
+      "source_files": [
+        "scripts/01_ingest_wardrobe.py",
+        "app/db.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "main()",
+      "target": "session()",
+      "source_files": [
+        "scripts/03_sync_pinterest.py",
+        "app/db.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}
